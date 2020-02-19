@@ -11,8 +11,10 @@ int buttonAlgo1 = 7;
 int buttonAlgo2 = 13;
 int led_array[8] = {led1, led2, led3, led4, led5, led6, led7, led8};
 int array_length = sizeof(led_array) / sizeof(*led_array);
+char serialData;
 
 void setup() {
+  Serial.begin(9600);
   pinMode(buttonAlgo1, INPUT);
   pinMode(buttonAlgo2, INPUT);
   for (int i = 0; i < array_length; i++) {
@@ -40,10 +42,14 @@ void algorithm2() {
 }
 
 void loop() {
-  if (digitalRead(buttonAlgo1) == HIGH) {
+  if(Serial.available() > 0) {
+    serialData = Serial.read();
+    Serial.print(serialData);
+  }
+  if (digitalRead(buttonAlgo1) == HIGH || serialData == '1') {
     algorithm1();
   }
-  if (digitalRead(buttonAlgo2) == HIGH) {
+  if (digitalRead(buttonAlgo2) == HIGH || serialData == '2') {
     algorithm2();
   }
 }
