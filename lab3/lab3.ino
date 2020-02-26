@@ -52,11 +52,11 @@ void full_stop() {
   mins = 0;
   hours = 0;
   lcd.setCursor(0, 1);
-  lcd.print("00");
+  lcd.print(" 0");
   lcd.setCursor(3, 1);
-  lcd.print("00");
+  lcd.print(" 0");
   lcd.setCursor(6, 1);
-  lcd.print("00");
+  lcd.print(" 0");
   lcd.setCursor(2, 1);
   lcd.print(":");
   lcd.setCursor(5, 1);
