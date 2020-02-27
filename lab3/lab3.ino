@@ -43,6 +43,32 @@ void setup() {
   pinMode(13, OUTPUT);
 }
 
+void time_flow() {
+  if (seconds < 60) {
+    lcd.setCursor(6, 1);
+    lcd.print(seconds);
+    lcd.setCursor(3, 1);
+    lcd.print(mins);
+    lcd.setCursor(0, 1);
+    lcd.print(hours);
+    delay(1000);
+    seconds++;
+  } else if (mins < 60) {
+    seconds = 0;
+    mins++;
+    lcd.setCursor(7, 1);
+    lcd.print(" ");
+  } else if (hours < 60) {
+    seconds = 0;
+    mins = 0;
+    hours++;
+    lcd.setCursor(4, 1);
+    lcd.print(" ");
+    lcd.setCursor(7, 1);
+    lcd.print(" ");
+  }
+}
+
 // stopwatch resets and stops
 void full_stop() {
   lcd.clear();
@@ -52,11 +78,11 @@ void full_stop() {
   mins = 0;
   hours = 0;
   lcd.setCursor(0, 1);
-  lcd.print(" 0");
+  lcd.print("0 ");
   lcd.setCursor(3, 1);
-  lcd.print(" 0");
+  lcd.print("0 ");
   lcd.setCursor(6, 1);
-  lcd.print(" 0");
+  lcd.print("0 ");
   lcd.setCursor(2, 1);
   lcd.print(":");
   lcd.setCursor(5, 1);
@@ -72,32 +98,23 @@ void start_countdown() {
   lcd.print(":");
   lcd.setCursor(0, 0);
   lcd.print("Stopwatch");
-  while (keypad.getKey() != 'D' && keypad.getKey() != 'C') {
-    if (seconds < 60) {
-      lcd.setCursor(6, 1);
-      lcd.print(seconds);
-      lcd.setCursor(3, 1);
-      lcd.print(mins);
-      lcd.setCursor(0, 1);
-      lcd.print(hours);
-      delay(1000);
-      seconds++;
-      noTone(buzzer);
-    } else if (mins < 60) {
-      tone(buzzer, 3000);
-      seconds = 0;
-      mins++;
-      lcd.setCursor(7, 1);
-      lcd.print(" ");
-    } else if (hours < 60) {
-      seconds = 0;
-      mins = 0;
-      hours++;
-      lcd.setCursor(4, 1);
-      lcd.print(" ");
-      lcd.setCursor(7, 1);
-      lcd.print(" ");
+  while (keypad.getKey() != 'D') {
+    if (keypad.getState() == HOLD){
+      cache();
     }
+    notification();
+    time_flow();
+  }
+  char next_menu = keypad.waitForKey();
+  if (next_menu == 'C') {
+    full_stop();
+  } else if (next_menu == '*') {
+    reset_cache();
+  } else if (next_menu == 'A') {
+    cached_menu();
+  } else if (next_menu == 'D') {
+    //actually continues it
+    start_countdown();
   }
 }
 // caching the entry
@@ -108,6 +125,10 @@ void cache() {
   String cached_entry = str_hours + ":" + str_mins + ":" + str_seconds;
   cached_entries[sequence_number] = cached_entry;
   sequence_number++;
+}
+
+void notification() {
+  
   lcd.setCursor(13, 0);
   lcd.print(sequence_number);
   lcd.setCursor(15, 0);
@@ -134,13 +155,35 @@ void cached_menu() {
         lcd.print(sequence_number + 1);
         sequence_number++;
       } else {
-        sequence_number = 0;
+        cached_menu();
       }
     } else if (keypad.getKey() == '*') {
       reset_cache();
       break;
+    } else if (keypad.getKey() == '#') {
+      navigation();
     }
   }
+}
+
+void navigation() {
+  lcd.setCursor(0,0);
+  lcd.print("Choose entry no");
+  char first_figure = keypad.getKey();
+  if (keypad.getKey() == '#') {
+    sequence_number = int(first_figure)-1;
+    lcd.setCursor(5,1);
+    lcd.print(cached_entries[sequence_number]);
+    lcd.setCursor(0,1);
+    lcd.print(sequence_number);
+  } else {
+    char second_figure = keypad.getKey();
+    sequence_number = int(first_figure+second_figure)-1;
+    lcd.setCursor(5,1);
+    lcd.print(cached_entries[sequence_number]);
+    lcd.setCursor(0,1);
+    lcd.print(sequence_number);
+  } 
 }
 
 void reset_cache() {
@@ -154,15 +197,9 @@ void reset_cache() {
 
 void loop() {
   key = keypad.getKey();
-  if (key == 'D') { // Check for a valid key.
+  if (key == 'D') {
     start_countdown();
-  } else if (key == 'C') {
-    full_stop();
-  } else if (key == '#') {
-    cache();
   } else if (key == 'A') {
     cached_menu();
-  } else if (key == '*') {
-    reset_cache();
   }
 }
